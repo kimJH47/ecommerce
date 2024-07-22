@@ -23,7 +23,7 @@ import NavBar from '@/components/NavBar.vue'
 header {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  /* align-items: center; */
   border-bottom: 1px solid #ccc;
   padding-bottom: 1em;
   margin-bottom: 1em;

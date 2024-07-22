@@ -1,4 +1,8 @@
 <template>
+  <header>
+    <h1>쇼핑몰</h1>
+    <NavBar />
+  </header>
   <div class="category-container">
     <SearchBar
       v-model:searchQuery="searchQuery"
@@ -32,6 +36,7 @@
 import { ref, computed, onMounted } from 'vue';
 import SearchBar from '../components/SearchBar.vue';
 import Pagination from '../components/Pagination.vue';
+import NavBar from '@/components/NavBar.vue'
 
 interface Product {
   id: number;
