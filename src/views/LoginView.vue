@@ -16,35 +16,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const email = ref<string>('');
-const password = ref<string>('');
-const router = useRouter();
+const email = ref<string>('')
+const password = ref<string>('')
+const router = useRouter()
 
 const login = () => {
-  fetch('localhost:8080/api/v2/auth/token', {
+  fetch('http://localhost:8080/api/v2/auth/token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ email: email.value, password: password.value })
   })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        localStorage.setItem('token', data.entity.accessToken);
-        router.push({ name: 'MainPage' });
-      } else {
-        alert('로그인에 실패했습니다. 다시 시도해주세요.');
+    .then(response => {
+      if (response.ok) {
+        return response.json()
       }
+      throw new Error(`Response status: ${response.status}`)
+    })
+    .then(data => {
+      console.log(data)
+      localStorage.setItem('token', data.entity.accessToken)
+      router.push('/')
     })
     .catch(error => {
-      console.error('Error:', error);
-      alert('로그인 과정에서 오류가 발생했습니다. 다시 시도해주세요.');
-    });
-};
+      console.error('Error:', error)
+      alert('로그인 과정에서 오류가 발생했습니다. 다시 시도해주세요.')
+    })
+}
 </script>
 
 <style scoped>
