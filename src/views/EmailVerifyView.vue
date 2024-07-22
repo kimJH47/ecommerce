@@ -9,22 +9,21 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useStatusStore } from '@/state/store'
 
 const route = useRoute()
 const router = useRouter()
+const statusStore = useStatusStore()
+
 
 onMounted(async () => {
   const code = route.query.code as string
   fetch(`http://localhost:8080/api/v2/auth/verified/${code}`)
     .then(res => {
         if (res.status === 200) {
-          router.push({
-            name: 'VerifiedComplete',
-            query: {
-              isSuccess: 'true'
-            }
-          })
+          statusStore.setSuccess(true)
         }
+        router.push({ name: 'VerifiedCompleteView' })
       }
     )
 })
