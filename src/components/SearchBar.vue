@@ -11,19 +11,15 @@
     <div class="filter-options">
       <div>
         <label>
-          <input type="radio" v-model="selectedSortOrder" value="name" />
-          이름순
-        </label>
-        <label>
-          <input type="radio" v-model="selectedSortOrder" value="date" />
+          <input type="radio" v-model="selectedSortOrder" value="new" />
           최근 등록순
         </label>
         <label>
-          <input type="radio" v-model="selectedSortOrder" value="lowPrice" />
+          <input type="radio" v-model="selectedSortOrder" value="price_low" />
           낮은 가격순
         </label>
         <label>
-          <input type="radio" v-model="selectedSortOrder" value="highPrice" />
+          <input type="radio" v-model="selectedSortOrder" value="price_high" />
           높은 가격순
         </label>
       </div>
