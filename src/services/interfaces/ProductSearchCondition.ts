@@ -1,5 +1,3 @@
-import type { SortType } from '@/services/productService'
-
 export interface ProductSearchCondition {
   page: number
   category: string
