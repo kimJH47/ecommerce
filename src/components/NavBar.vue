@@ -4,10 +4,13 @@
       <RouterLink to="/">쇼핑몰</RouterLink>
       <RouterLink to="/category/top">상의</RouterLink>
       <RouterLink to="/category/outer">아우터</RouterLink>
-      <RouterLink to="/category/shoes">신발</RouterLink>
-      <RouterLink to="/category/accessory">악세사리</RouterLink>
       <RouterLink to="/category/pants">바지</RouterLink>
-      <RouterLink to="/category/dress">원피스</RouterLink>
+      <RouterLink to="/category/onepiece">원피스</RouterLink>
+      <RouterLink to="/category/skirt">치마</RouterLink>
+      <RouterLink to="/category/sneakers">스니커즈</RouterLink>
+      <RouterLink to="/category/shoes">신발</RouterLink>
+      <RouterLink to="/category/head_wear">모자</RouterLink>
+      <RouterLink to="/category/accessory">악세사리</RouterLink>
     </div>
     <div class="navbar-right">
       <RouterLink v-if="!isLoggedIn" to="/login">로그인</RouterLink>
