@@ -8,7 +8,7 @@
     <main class="content">
       <div class="product-list">
         <!-- 실제 상품 카드 -->
-        <div v-for="product in displayedProducts" :key="product.id" class="product-card">
+        <div v-for="product in products" :key="product.id" class="product-card">
           <img :src="product.thumbnail" :alt="product.name" />
           <div class="product-info">
             <h3>{{ product.name }}</h3>
@@ -46,13 +46,19 @@ const route = useRoute()
 const store = useSearchConditionStore()
 
 const emptyCardCount = computed(() => {
-  return Math.max(0, itemsPerPage - displayedProducts.value.length)
+  return Math.max(0, itemsPerPage - products.value.length)
 })
 
 const handlePageChange = (page: number) => {
   currentPage.value = page
   // 데이터 새로 고침 로직 추가
-  fetchProducts(route.params.category as string)
+  store.page = page
+  searchWithCondition(store.condition)
+    .then(data => {
+      products.value = data
+    }).catch(err => {
+    console.log(err)
+  })
 }
 
 const fetchProducts = (category: string) => {
@@ -72,18 +78,16 @@ const searchProducts = () => {
   })
 }
 
-const displayedProducts = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage
-  const end = start + itemsPerPage
-  return products.value.slice(start, end)
-})
-
 onMounted(() => {
+  store.$reset()
+  store.category = route.params.category as string
   fetchProducts(route.params.category as string)
 })
 
 onBeforeRouteUpdate((to, from, next) => {
+  store.$reset()
   currentPage.value = 1 // 카테고리 이동 시 페이지를 첫 페이지로 초기화
+  store.category = to.params.category as string
   fetchProducts(to.params.category as string)
   next()
 })
