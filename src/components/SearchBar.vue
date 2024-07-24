@@ -32,33 +32,34 @@
   </aside>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
+<script lang="ts" setup>
+import { ref } from 'vue'
+import { useSearchConditionStore } from '@/state/store'
+import { useRoute } from 'vue-router'
 
-export default defineComponent({
-  name: 'SearchBar',
-  setup() {
-    const searchQuery = ref<string>('');
-    const searchType = ref<string>('name');
-    const selectedSortOrder = ref<string>('name');
-    const minPrice = ref<number | null>(null);
-    const maxPrice = ref<number | null>(null);
+const searchQuery = ref<string>('')
+const searchType = ref<string>('name')
+const selectedSortOrder = ref<string>('new')
+const minPrice = ref<number | null>(null)
+const maxPrice = ref<number | null>(null)
 
-    const searchProducts = () => {
-      // 이벤트를 발생시켜 부모 컴포넌트에 검색을 알리도록 구현할 수 있습니다.
-      console.log('검색 실행:', searchQuery.value, searchType.value);
-    };
+const emit = defineEmits(['search'])
+const route = useRoute()
+const store = useSearchConditionStore()
 
-    return {
-      searchQuery,
-      searchType,
-      selectedSortOrder,
-      minPrice,
-      maxPrice,
-      searchProducts
-    };
-  }
-});
+const searchProducts = () => {
+  store.updateCondition(
+    {
+      page: 1,
+      category: route.params.category as string,
+      searchQuery: searchQuery.value,
+      sortOrder: selectedSortOrder.value,
+      minPrice: minPrice.value,
+      maxPrice: maxPrice.value
+    }
+  )
+  emit('search')
+}
 </script>
 
 <style scoped>
