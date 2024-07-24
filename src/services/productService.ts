@@ -20,8 +20,8 @@ export async function searchFirstPage(category: string): Promise<Product[]> {
 export async function searchWithCondition(condition: ProductSearchCondition): Promise<Product[]> {
   const params = convertToSearchParams({
     page: condition.page,
-    name: condition.searchQuery,
-    brandName: condition.searchQuery,
+    name: condition.searchType === 'name' ? condition.searchQuery : null,
+    brandName: condition.searchType === 'brand' ? condition.searchQuery : null,
     category: condition.category,
     sort: condition.sortOrder,
     maxPrice: condition.maxPrice,
@@ -38,6 +38,7 @@ export async function searchWithCondition(condition: ProductSearchCondition): Pr
       return data.entity.products
     }).catch(err => {
       console.log(err)
+      return []
     })
 }
 
