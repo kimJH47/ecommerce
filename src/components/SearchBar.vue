@@ -53,6 +53,7 @@ const searchProducts = () => {
       page: 1,
       category: route.params.category as string,
       searchQuery: searchQuery.value,
+      searchType: searchType.value,
       sortOrder: selectedSortOrder.value,
       minPrice: minPrice.value,
       maxPrice: maxPrice.value
