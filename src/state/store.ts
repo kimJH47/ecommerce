@@ -15,7 +15,7 @@ export const useStatusStore = defineStore('status', {
 export const useSearchConditionStore = defineStore('condition', {
   state: () => ({
     page: 1,
-    category: '',
+    category: null as string | null ,
     searchQuery: null as string | null,
     searchType: 'name',
     sortOrder: 'new',
@@ -24,21 +24,24 @@ export const useSearchConditionStore = defineStore('condition', {
   }),
   actions: {
     updateCondition(condition: ProductSearchCondition) {
+      this.page = condition.page
+      this.category = condition.category
       this.searchQuery = condition.searchQuery
       this.sortOrder = condition.sortOrder
       this.minPrice = condition.minPrice
       this.maxPrice = condition.maxPrice
-      //this.searchType=condition.searchType
+      this.searchType = condition.searchType
     }
   },
   getters: {
     condition: (state) => ({
-      page: 1,
+      page: state.page,
       category: state.category,
-      sortOrder: state.sortOrder,
       searchQuery: state.searchQuery,
+      searchType: state.searchType,
       minPrice: state.minPrice,
-      maxPrice: state.maxPrice
+      maxPrice: state.maxPrice,
+      sortOrder: state.sortOrder
     })
   }
 })
