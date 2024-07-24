@@ -4,129 +4,89 @@
     <NavBar />
   </header>
   <div class="category-container">
-    <SearchBar
-      v-model:searchQuery="searchQuery"
-      v-model:searchType="searchType"
-      v-model:sortOrder="sortOrder"
-      v-model:minPrice="minPrice"
-      v-model:maxPrice="maxPrice"
-      @search="searchProducts"
-    />
-
-    <main>
+    <SearchBar @search="searchProducts" />
+    <main class="content">
       <div class="product-list">
+        <!-- 실제 상품 카드 -->
         <div v-for="product in displayedProducts" :key="product.id" class="product-card">
           <img :src="product.thumbnail" :alt="product.name" />
-          <h3>{{ product.name }}</h3>
-          <p>{{ product.brand }}</p>
-          <p>{{ product.price }}원</p>
+          <div class="product-info">
+            <h3>{{ product.name }}</h3>
+            <p>{{ product.brandName }}</p>
+            <p class="price">{{ product.price }}원</p>
+          </div>
         </div>
+        <!-- 빈 카드로 공간 유지 -->
+        <div v-for="i in emptyCardCount" :key="'empty-' + i" class="product-card empty-card"></div>
       </div>
-
-      <Pagination
+      <PaginationBar
         :currentPage="currentPage"
-        :pageSet="pageSet"
-        @change-page="changePage"
+        :totalPages="totalPages"
+        @update:currentPage="handlePageChange"
       />
     </main>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue';
-import SearchBar from '../components/SearchBar.vue';
-import Pagination from '../components/Pagination.vue';
+import { ref, computed, onMounted } from 'vue'
+import { onBeforeRouteUpdate, useRoute } from 'vue-router'
+import SearchBar from '../components/SearchBar.vue'
 import NavBar from '@/components/NavBar.vue'
+import PaginationBar from '@/components/PaginationBar.vue'
+import type { Product } from '@/services/interfaces/Product'
+import { searchFirstPage, searchWithCondition } from '@/services/productService'
+import { useSearchConditionStore } from '@/state/store'
 
-interface Product {
-  id: number;
-  thumbnail: string;
-  name: string;
-  brand: string;
-  price: number;
-  date: string;
+const currentPage = ref<number>(1)
+const products = ref<Product[]>([])
+const itemsPerPage = 12 // 한 페이지에 최대 12개 상품
+const totalPages = ref<number>(100) // 항상 100페이지
+const route = useRoute()
+const store = useSearchConditionStore()
+
+const emptyCardCount = computed(() => {
+  return Math.max(0, itemsPerPage - displayedProducts.value.length)
+})
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+  // 데이터 새로 고침 로직 추가
+  fetchProducts(route.params.category as string)
 }
 
-const searchQuery = ref<string>('');
-const searchType = ref<string>('name');
-const sortOrder = ref<string>('name');
-const currentPage = ref<number>(1);
-const minPrice = ref<number | null>(null);
-const maxPrice = ref<number | null>(null);
-const products = ref<Product[]>([]);
-const itemsPerPage = 20;
-const totalPages = 100; // 항상 100페이지
-
-const fetchProducts = () => {
-  // 실제 데이터를 가져오는 로직은 여기에 구현합니다.
-  products.value = [
-    {
-      id: 1,
-      thumbnail: 'https://via.placeholder.com/150',
-      name: '상품 1',
-      brand: '브랜드 A',
-      price: 10000,
-      date: '2024-01-01'
-    },
-    // ... 추가 상품 데이터
-  ];
-};
-
-const filteredProducts = computed(() => {
-  return products.value
-    .filter(product => {
-      const query = searchQuery.value.toLowerCase();
-      if (searchType.value === 'name') {
-        return product.name.toLowerCase().includes(query);
-      } else if (searchType.value === 'brand') {
-        return product.brand.toLowerCase().includes(query);
-      }
-      return true;
+const fetchProducts = (category: string) => {
+  searchFirstPage(category)
+    .then(data => {
+      products.value = data
     })
-    .filter(product => {
-      if (minPrice.value !== null && product.price < minPrice.value) {
-        return false;
-      }
-      return !(maxPrice.value !== null && product.price > maxPrice.value);
-
-    })
-    .sort((a, b) => {
-      if (sortOrder.value === 'name') {
-        return a.name.localeCompare(b.name);
-      } else if (sortOrder.value === 'date') {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      } else if (sortOrder.value === 'lowPrice') {
-        return a.price - b.price;
-      } else if (sortOrder.value === 'highPrice') {
-        return b.price - a.price;
-      }
-      return 0;
-    });
-});
-
-const displayedProducts = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return filteredProducts.value.slice(start, end);
-});
-
-const pageSet = computed(() => {
-  const start = Math.floor((currentPage.value - 1) / 10) * 10 + 1;
-  const end = Math.min(start + 9, totalPages);
-  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
-});
-
-const changePage = (page: number) => {
-  currentPage.value = page;
-};
+}
 
 const searchProducts = () => {
-  currentPage.value = 1; // 검색 시 페이지를 첫 페이지로 초기화
-  // 검색 로직 구현
-};
+  searchWithCondition(store.condition)
+    .then(data => {
+      currentPage.value = 1 // 검색 시 페이지를 첫 페이지로 초기화
+      products.value = data
+    }).catch(err => {
+    console.log(err)
+  })
+}
 
-onMounted(fetchProducts);
+const displayedProducts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return products.value.slice(start, end)
+})
 
+onMounted(() => {
+  fetchProducts(route.params.category as string)
+})
+
+onBeforeRouteUpdate((to, from, next) => {
+  currentPage.value = 1 // 카테고리 이동 시 페이지를 첫 페이지로 초기화
+  fetchProducts(to.params.category as string)
+  next()
+})
 </script>
 
 <style scoped>
@@ -134,31 +94,54 @@ onMounted(fetchProducts);
   display: flex;
 }
 
-.main {
+.content {
   flex: 1;
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
 }
 
 .product-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4열 */
   gap: 1em;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 1em;
+  background-color: #fff;
+  position: relative;
 }
 
 .product-card {
-  width: 200px;
-  border: 1px solid #ccc;
-  padding: 1em;
+  width: 100%;
+  height: 350px; /* 카드 높이 */
+  border: 1px solid #ddd;
   border-radius: 4px;
+  background-color: #fff;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1em;
+  box-sizing: border-box;
 }
 
 .product-card img {
   width: 100%;
-  height: auto;
+  height: 200px; /* 이미지 높이 조정 */
+  object-fit: cover; /* 이미지 비율 유지 */
+  margin-bottom: 1em;
+}
+
+.product-info {
+  flex: 1;
 }
 
 .product-card h3 {
   margin: 0.5em 0;
-  font-size: 1.1em;
+  font-size: 1.2em;
+  overflow: hidden; /* 텍스트 넘침 방지 */
+  text-overflow: ellipsis; /* 넘침 시 생략 부호 */
+  white-space: nowrap; /* 텍스트 줄 바꿈 방지 */
 }
 
 .product-card p {
@@ -166,19 +149,14 @@ onMounted(fetchProducts);
   color: #888;
 }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 1em;
-}
-
-.pagination button {
-  padding: 0.5em 1em;
-  margin: 0 0.25em;
-}
-
-.pagination button.active {
+.price {
   font-weight: bold;
-  text-decoration: underline;
 }
+
+.empty-card {
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  height: 350px; /* 카드 높이 맞춤 */
+}
+
 </style>
